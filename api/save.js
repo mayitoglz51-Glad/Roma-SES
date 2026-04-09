@@ -1,28 +1,17 @@
 export default async function handler(req, res) {
   try {
-    const url = `${process.env.SUPABASE_URL}/rest/v1/Entries`;
-    const key = process.env.SUPABASE_ANON_KEY;
-    
-    const sbRes = await fetch(url, {
+    const response = await fetch('https://api.jsonbin.io/v3/b', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': key,
-        'Authorization': `Bearer ${key}`,
-        'Prefer': 'return=representation'
+        'X-Master-Key': process.env.JSONBIN_KEY,
+        'X-Bin-Name': 'roma-ses-entries'
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify({ entry: req.body, saved_at: new Date().toISOString() })
     });
-
-    const text = await sbRes.text();
-    return res.status(200).json({ 
-      status: sbRes.status, 
-      url: url.replace(process.env.SUPABASE_URL, 'HIDDEN'),
-      hasKey: !!key,
-      keyStart: key ? key.slice(0,10) : 'MISSING',
-      response: text.slice(0, 500)
-    });
+    const data = await response.json();
+    return res.status(200).json({ id: data.metadata?.id || Date.now() });
   } catch(err) {
-    return res.status(200).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
