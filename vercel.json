@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/*.js": {
-      "memory": 1024
-    }
-  },
   "rewrites": [
     { "source": "/api/scan", "destination": "/api/scan.js" },
     { "source": "/api/save", "destination": "/api/save.js" },
