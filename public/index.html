@@ -282,9 +282,10 @@ async function confirmEntry() {
     updateStats();
     renderEntries();
     rescan();
-    showToast(selectedType === 'none' ? 'Logged — no inspection' : 'Entry logged and saved');
+    const msg = JSON.stringify(saved).slice(0,100);
+    showToast(msg);
   } catch(err) {
-    showToast('Error saving entry');
+    showToast('ERR: ' + err.message.slice(0,50));
   }
 }
 
