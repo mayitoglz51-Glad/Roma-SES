@@ -1,18 +1,28 @@
 export default async function handler(req, res) {
   try {
-    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/Entries`, {
+    const url = `${process.env.SUPABASE_URL}/rest/v1/Entries`;
+    const key = process.env.SUPABASE_ANON_KEY;
+    
+    const sbRes = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': process.env.SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
         'Prefer': 'return=representation'
       },
       body: JSON.stringify(req.body)
     });
-    const data = await sbRes.json();
-    return res.status(200).json(data);
+
+    const text = await sbRes.text();
+    return res.status(200).json({ 
+      status: sbRes.status, 
+      url: url.replace(process.env.SUPABASE_URL, 'HIDDEN'),
+      hasKey: !!key,
+      keyStart: key ? key.slice(0,10) : 'MISSING',
+      response: text.slice(0, 500)
+    });
   } catch(err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(200).json({ error: err.message });
   }
 }
