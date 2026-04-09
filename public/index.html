@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Roma SES" />
+  <title>Roma SES Entry Log</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+    .app { max-width: 480px; margin: 0 auto; padding: 1rem; min-height: 100vh; background: #f5f5f5; }
+    .header { text-align: center; padding: 1.25rem 0 1rem; background: white; border-radius: 14px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .header h1 { font-size: 20px; font-weight: 600; color: #1a1a1a; }
+    .header p { font-size: 12px; color: #888; margin-top: 3px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+    .stat { background: white; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .stat-num { font-size: 30px; font-weight: 600; color: #1a1a1a; }
+    .stat-num.cold { color: #1a6fb5; }
+    .stat-num.dry { color: #2e7d32; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 3px; }
+    .card { background: white; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .capture-zone { border: 2px dashed #ddd; border-radius: 14px; padding: 2.5rem 1rem; text-align: center; cursor: pointer; background: white; position: relative; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .cam-icon { font-size: 40px; margin-bottom: 10px; }
+    .capture-zone h2 { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+    .capture-zone p { font-size: 13px; color: #888; }
+    #file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .preview-img { width: 100%; border-radius: 10px; margin-bottom: 1rem; max-height: 200px; object-fit: cover; }
+    .scanning { text-align: center; padding: 2rem; background: white; border-radius: 14px; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .spinner { width: 36px; height: 36px; border: 3px solid #eee; border-top-color: #1a6fb5; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .scan-label { font-size: 14px; color: #888; }
+    .field-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .field-row:last-child { border-bottom: none; }
+    .field-key { font-size: 13px; color: #888; }
+    .field-val { font-size: 13px; font-weight: 600; color: #1a1a1a; text-align: right; max-width: 65%; }
+    .section-label { font-size: 13px; color: #888; margin-bottom: 8px; font-weight: 500; }
+    .type-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+    .type-btn { padding: 12px 4px; border: 1.5px solid #e0e0e0; border-radius: 10px; background: white; color: #888; font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; }
+    .type-btn.active-dry { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+    .type-btn.active-cold { background: #e3f2fd; border-color: #1a6fb5; color: #0d47a1; }
+    .type-btn.active-none { background: #fff8e1; border-color: #f57f17; color: #e65100; }
+    .btn-confirm { width: 100%; padding: 15px; background: #1D9E75; border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+    .btn-confirm.none-mode { background: #f57f17; }
+    .btn-rescan { width: 100%; padding: 12px; background: transparent; border: 1.5px solid #e0e0e0; border-radius: 12px; color: #888; font-size: 14px; cursor: pointer; }
+    .section-title { font-size: 14px; font-weight: 600; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .entry-card { background: white; border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .entry-card.none-entry { border-left: 3px solid #f57f17; }
+    .entry-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .entry-num { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+    .pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+    .pill-cold { background: #e3f2fd; color: #0d47a1; }
+    .pill-dry { background: #e8f5e9; color: #1b5e20; }
+    .pill-none { background: #fff8e1; color: #e65100; }
+    .entry-details { font-size: 12px; color: #888; line-height: 1.7; }
+    .entry-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; }
+    .entry-time { font-size: 11px; color: #bbb; }
+    .btn-complete { font-size: 12px; padding: 6px 10px; border: 1.5px solid #1a6fb5; border-radius: 8px; background: transparent; color: #1a6fb5; cursor: pointer; font-weight: 500; }
+    .btn-not-inspected { font-size: 12px; padding: 6px 10px; border: 1.5px solid #f57f17; border-radius: 8px; background: transparent; color: #f57f17; cursor: pointer; font-weight: 500; }
+    .complete-tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e8f5e9; color: #1b5e20; font-weight: 600; }
+    .not-inspected-tag { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #fff8e1; color: #e65100; font-weight: 600; }
+    .error-msg { background: #ffebee; color: #c62828; border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; }
+    .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; font-size: 13px; padding: 12px 22px; border-radius: 30px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; font-weight: 500; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Roma SES</h1>
+    <p>Secondary Examination Station — Roma, TX</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat"><div class="stat-num cold" id="s-cold">0</div><div class="stat-label">Cold</div></div>
+    <div class="stat"><div class="stat-num dry" id="s-dry">0</div><div class="stat-label">Dry</div></div>
+  </div>
+
+  <div id="view-capture">
+    <div class="capture-zone">
+      <input type="file" id="file-input" accept="image/*" capture="environment" onchange="handlePhoto(event)" />
+      <div class="cam-icon">📷</div>
+      <h2>Photo the manifest</h2>
+      <p>Entry details will auto-fill</p>
+    </div>
+  </div>
+
+  <div id="view-scanning" style="display:none">
+    <img id="preview" class="preview-img" />
+    <div class="scanning">
+      <div class="spinner"></div>
+      <div class="scan-label">Reading manifest...</div>
+    </div>
+  </div>
+
+  <div id="view-result" style="display:none">
+    <img id="preview2" class="preview-img" />
+    <div id="error-box" class="error-msg" style="display:none"></div>
+    <div class="card">
+      <div class="field-row"><span class="field-key">Entry number</span><span class="field-val" id="r-entry">—</span></div>
+      <div class="field-row"><span class="field-key">Filer code</span><span class="field-val" id="r-code">—</span></div>
+      <div class="field-row"><span class="field-key">Broker</span><span class="field-val" id="r-broker">—</span></div>
+      <div class="field-row"><span class="field-key">Stevedore</span><span class="field-val" id="r-stev">—</span></div>
+      <div class="field-row"><span class="field-key">Date</span><span class="field-val" id="r-date">—</span></div>
+    </div>
+    <div class="card">
+      <div class="section-label">Inspection type</div>
+      <div class="type-toggle">
+        <button class="type-btn active-dry" id="tb-dry" onclick="setType('dry')">Dry</button>
+        <button class="type-btn" id="tb-cold" onclick="setType('cold')">Cold</button>
+        <button class="type-btn" id="tb-none" onclick="setType('none')">No inspection</button>
+      </div>
+      <button class="btn-confirm" id="btn-confirm" onclick="confirmEntry()">Log entry</button>
+      <button class="btn-rescan" onclick="rescan()">Rescan</button>
+    </div>
+  </div>
+
+  <div id="entries-section" style="display:none">
+    <div class="section-title">Today's log</div>
+    <div id="entries-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BROKERS = {
+  "BPP":{name:"MGT Logistics",stev:"Professional Stevedore"},
+  "259":{name:"Librado Piña",stev:"Rapido Stevedore"},
+  "8MH":{name:"Alma Delia Espinoza",stev:"Professional Stevedore"},
+  "9LN":{name:"Jorge Garza",stev:"Professional Stevedore"},
+  "B9A":{name:"Pacheco Brokers",stev:"Professional Stevedore"},
+  "BJG":{name:"Bustamante Brokers",stev:"Professional Stevedore"},
+  "BOQ":{name:"Gilbert Ramey",stev:"Professional Stevedore"},
+  "BYX":{name:"Carlos Garcia",stev:"Carlos Garcia Stevedore"},
+  "DR4":{name:"Joe Arevalo",stev:"Professional Stevedore"},
+  "ENV":{name:"Roger Garcia",stev:"Carlos Garcia Stevedore"},
+  "300":{name:"Livingston International",stev:"Carlos Garcia Stevedore"},
+  "392":{name:"Aquiles Broker",stev:"Professional Stevedore"},
+  "83U":{name:"Rancho CHB",stev:"Professional Stevedore"},
+  "861":{name:"Raymundo Molina",stev:"Professional Stevedore"},
+  "8M9":{name:"Gumak Trade Alliance",stev:"Professional Stevedore"},
+  "92J":{name:"R.L Jones",stev:"Professional Stevedore"},
+  "AE3":{name:"Suarez Brokerage",stev:"Professional Stevedore"},
+  "BRB":{name:"McAllen Trade Service",stev:"Professional Stevedore"},
+  "BSI":{name:"K & K International",stev:"Professional Stevedore"},
+  "BUV":{name:"Ace Customs Brokers",stev:"Professional Stevedore"},
+  "DV1":{name:"Philip Garcia",stev:"Professional Stevedore"},
+  "DV2":{name:"Alvarado Brokerage",stev:"Professional Stevedore"},
+  "EN8":{name:"Falcon Brokerage",stev:"Professional Stevedore"}
+};
+
+let currentEntry = null, entries = [], selectedType = 'dry';
+
+function setType(t) {
+  selectedType = t;
+  document.getElementById('tb-dry').className = 'type-btn' + (t === 'dry' ? ' active-dry' : '');
+  document.getElementById('tb-cold').className = 'type-btn' + (t === 'cold' ? ' active-cold' : '');
+  document.getElementById('tb-none').className = 'type-btn' + (t === 'none' ? ' active-none' : '');
+  const btn = document.getElementById('btn-confirm');
+  btn.className = t === 'none' ? 'btn-confirm none-mode' : 'btn-confirm';
+  btn.textContent = t === 'none' ? 'Log — no inspection' : 'Log entry';
+}
+
+function showView(v) {
+  ['capture','scanning','result'].forEach(x => {
+    document.getElementById('view-' + x).style.display = x === v ? 'block' : 'none';
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function todayDate() {
+  return new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+}
+
+async function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('preview').src = URL.createObjectURL(file);
+  document.getElementById('preview2').src = URL.createObjectURL(file);
+  showView('scanning');
+  try {
+    const b64 = await fileToBase64(file);
+    await scanManifest(b64);
+  } catch(err) {
+    showView('result');
+    document.getElementById('error-box').style.display = 'block';
+    document.getElementById('error-box').textContent = 'Photo error: ' + err.message;
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const max = 1200;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.75).split(',')[1]);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function scanManifest(b64) {
+  try {
+    const resp = await fetch('/api/scan', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({image: b64})
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    populateResult(data);
+  } catch(err) {
+    showView('result');
+    document.getElementById('error-box').style.display = 'block';
+    document.getElementById('error-box').textContent = 'Could not read manifest. Try a clearer photo.';
+  }
+}
+
+function populateResult(data) {
+  const code = (data.filer_code || '').toUpperCase().trim();
+  const broker = BROKERS[code];
+  document.getElementById('r-entry').textContent = data.prefile_number || 'Not found';
+  document.getElementById('r-code').textContent = code || 'Not found';
+  document.getElementById('r-broker').textContent = broker ? broker.name : 'Unknown';
+  document.getElementById('r-stev').textContent = broker ? broker.stev : '—';
+  document.getElementById('r-date').textContent = data.date_of_arrival || todayDate();
+  document.getElementById('error-box').style.display = 'none';
+  setType('dry');
+  currentEntry = {
+    prefileNum: data.prefile_number || 'Unknown',
+    filerCode: code,
+    brokerName: broker ? broker.name : 'Unknown',
+    stevedore: broker ? broker.stev : 'Unknown',
+    date: data.date_of_arrival || todayDate()
+  };
+  showView('result');
+}
+
+async function confirmEntry() {
+  if (!currentEntry) return;
+  const entry = {
+    prefile_num: currentEntry.prefileNum,
+    filer_code: currentEntry.filerCode,
+    broker_name: currentEntry.brokerName,
+    stevedore: currentEntry.stevedore,
+    entry_date: currentEntry.date,
+    type: selectedType,
+    logged_time: nowTime(),
+    complete: false,
+    not_inspected: false
+  };
+  try {
+    const resp = await fetch('/api/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(entry)
+    });
+    const saved = await resp.json();
+    const e = {...entry, id: saved[0]?.id || Date.now(), prefileNum: entry.prefile_num, filerCode: entry.filer_code, brokerName: entry.broker_name};
+    entries.unshift(e);
+    updateStats();
+    renderEntries();
+    rescan();
+    showToast(selectedType === 'none' ? 'Logged — no inspection' : 'Entry logged and saved');
+  } catch(err) {
+    showToast('Error saving entry');
+  }
+}
+
+function rescan() {
+  currentEntry = null;
+  document.getElementById('file-input').value = '';
+  showView('capture');
+}
+
+async function markComplete(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  e.complete = true;
+  renderEntries();
+  showToast('Inspection complete');
+  try {
+    await fetch('/api/update', {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id, complete: true})
+    });
+  } catch(err) {}
+}
+
+async function markNotInspected(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  e.not_inspected = true;
+  renderEntries();
+  showToast('Marked as not inspected');
+  try {
+    await fetch('/api/update', {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({id, not_inspected: true})
+    });
+  } catch(err) {}
+}
+
+function updateStats() {
+  const ins = entries.filter(e => e.type !== 'none');
+  document.getElementById('s-total').textContent = ins.length;
+  document.getElementById('s-cold').textContent = ins.filter(e => e.type === 'cold').length;
+  document.getElementById('s-dry').textContent = ins.filter(e => e.type === 'dry').length;
+}
+
+function renderEntries() {
+  const list = document.getElementById('entries-list');
+  const sec = document.getElementById('entries-section');
+  if (entries.length === 0) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = entries.map(e => `
+    <div class="entry-card${e.type === 'none' ? ' none-entry' : ''}">
+      <div class="entry-top">
+        <div class="entry-num">${e.prefileNum || e.prefile_num}</div>
+        <span class="pill ${e.type === 'cold' ? 'pill-cold' : e.type === 'none' ? 'pill-none' : 'pill-dry'}">
+          ${e.type === 'cold' ? 'Cold' : e.type === 'none' ? 'No inspection' : 'Dry'}
+        </span>
+      </div>
+      <div class="entry-details">${e.filerCode || e.filer_code} &middot; ${e.brokerName || e.broker_name}<br>${e.stevedore}</div>
+      <div class="entry-footer">
+        <span class="entry-time">${e.entry_date || e.date} &middot; ${e.logged_time}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${e.not_inspected
+            ? '<span class="not-inspected-tag">Not inspected</span>'
+            : e.complete
+              ? '<span class="complete-tag">Complete</span>'
+              : `<button class="btn-complete" onclick="markComplete('${e.id}')">Complete</button>
+                 <button class="btn-not-inspected" onclick="markNotInspected('${e.id}')">Not inspected</button>`
+          }
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadTodayEntries() {
+  try {
+    const resp = await fetch('/api/entries');
+    const data = await resp.json();
+    if (Array.isArray(data)) {
+      entries = data.map(e => ({...e, prefileNum: e.prefile_num, filerCode: e.filer_code, brokerName: e.broker_name}));
+      updateStats();
+      renderEntries();
+    }
+  } catch(err) {}
+}
+
+loadTodayEntries();
+</script>
+</body>
+</html>
