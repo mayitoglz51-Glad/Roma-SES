@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
     const { id, ...fields } = req.body;
-    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/entries?id=eq.${id}`, {
+    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/Entries?id=eq.${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
