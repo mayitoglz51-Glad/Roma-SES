@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/entries`, {
+    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/Entries`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
