@@ -282,8 +282,7 @@ async function confirmEntry() {
     updateStats();
     renderEntries();
     rescan();
-    const msg = JSON.stringify(saved).slice(0,100);
-    showToast(msg);
+    showToast('Entry logged and saved');
   } catch(err) {
     showToast('ERR: ' + err.message.slice(0,50));
   }
