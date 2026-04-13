@@ -352,8 +352,8 @@ function renderEntries() {
             ? '<span class="not-inspected-tag">Not inspected</span>'
             : e.complete
               ? '<span class="complete-tag">Complete</span>'
-              : `<button class="btn-complete" onclick="markComplete('${e.id}')">Complete</button>
-                 <button class="btn-not-inspected" onclick="markNotInspected('${e.id}')">Not inspected</button>`
+              : <button class="btn-complete" onclick="markComplete(${e.id})">Complete</button>
+<button class="btn-not-inspected" onclick="markNotInspected(${e.id})">Not inspected</button>
           }
         </div>
       </div>
