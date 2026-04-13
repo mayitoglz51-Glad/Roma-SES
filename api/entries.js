@@ -1,7 +1,6 @@
 export default async function handler(req, res) {
   try {
-    const today = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/Entries?entry_date=eq.${encodeURIComponent(today)}&order=logged_time.desc`, {
+    const sbRes = await fetch(`${process.env.SUPABASE_URL}/rest/v1/Entries?order=logged_time.desc`, {
       headers: {
         'apikey': process.env.SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
