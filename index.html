@@ -295,18 +295,7 @@ function rescan() {
 }
 
 async function markComplete(id) {
-  const e = entries.find(x => x.id === id);
-  if (!e) return;
-  e.complete = 'true';
-  renderEntries();
-  showToast('Inspection complete');
-  try {
-    await fetch('/api/update', {
-      method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id, complete: 'true'})
-    });
-  } catch(err) {}
+  showToast('Tapped complete id:' + id + ' type:' + typeof id);
 }
 
 async function markNotInspected(id) {
