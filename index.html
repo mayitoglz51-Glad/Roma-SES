@@ -297,14 +297,14 @@ function rescan() {
 async function markComplete(id) {
   const e = entries.find(x => x.id === id);
   if (!e) return;
-  e.complete = true;
+  e.complete = 'true';
   renderEntries();
   showToast('Inspection complete');
   try {
     await fetch('/api/update', {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id, complete: true})
+      body: JSON.stringify({id, complete: 'true'})
     });
   } catch(err) {}
 }
@@ -312,14 +312,14 @@ async function markComplete(id) {
 async function markNotInspected(id) {
   const e = entries.find(x => x.id === id);
   if (!e) return;
-  e.not_inspected = true;
+  e.not_inspected = 'true';
   renderEntries();
   showToast('Marked as not inspected');
   try {
     await fetch('/api/update', {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id, not_inspected: true})
+      body: JSON.stringify({id, not_inspected: 'true'})
     });
   } catch(err) {}
 }
